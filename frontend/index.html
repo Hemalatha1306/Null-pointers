@@ -1,0 +1,612 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NULLPOINTERS | Spacecraft Control</title>
+
+    <style>
+        :root {
+            --bg: #06111f;
+            --panel: #0d1b2d;
+            --panel-light: #14263b;
+            --border: #243b55;
+            --cyan: #28e5f4;
+            --blue: #82baff;
+            --white: #f4f8ff;
+            --muted: #9bb6d7;
+            --green: #4ade80;
+            --red: #fb7185;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--white);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        .app {
+            width: min(1500px, 100%);
+            margin: auto;
+            padding: 24px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 54px;
+            height: 54px;
+            border-radius: 15px;
+            background: #142c46;
+            font-size: 28px;
+        }
+
+        h1 {
+            font-size: clamp(23px, 3vw, 32px);
+        }
+
+        .subtitle {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .status-pill {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--muted);
+            border-radius: 30px;
+            padding: 10px 15px;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .status-pill.online {
+            color: var(--green);
+            border-color: #246443;
+        }
+
+        .status-pill.offline {
+            color: var(--red);
+            border-color: #7f3042;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .panel {
+            min-width: 0;
+            padding: 25px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: linear-gradient(145deg, #0e1d30, #0a1727);
+        }
+
+        .eyebrow {
+            color: var(--blue);
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .panel h2 {
+            font-size: 23px;
+            margin-bottom: 18px;
+        }
+
+        .camera-frame {
+            overflow: hidden;
+            width: 100%;
+            min-height: 230px;
+            background: #030a13;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            display: grid;
+            place-items: center;
+        }
+
+        #cameraFeed {
+            display: block;
+            width: 100%;
+            height: auto;
+            min-height: 230px;
+            max-height: 430px;
+            object-fit: contain;
+        }
+
+        .camera-placeholder {
+            padding: 20px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .camera-placeholder.hidden {
+            display: none;
+        }
+
+        .detection-card {
+            margin-top: 18px;
+            padding: 18px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            background: #0a1727;
+        }
+
+        .detection-heading {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .detection-icon {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            background: #18334e;
+            font-size: 23px;
+        }
+
+        .detection-heading strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .muted {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .small {
+            font-size: 13px;
+        }
+
+        .toggle-button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px 15px;
+            border: 1px solid #28506f;
+            border-radius: 10px;
+            color: var(--cyan);
+            background: #10253b;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .toggle-button:hover,
+        .number-button:hover {
+            background: #193750;
+            border-color: var(--cyan);
+        }
+
+        .camera-status {
+            margin-top: 18px;
+            padding: 20px;
+            background: #091725;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+        }
+
+        .camera-status h3 {
+            margin: 10px 0;
+            color: var(--cyan);
+            font-size: 22px;
+        }
+
+        .camera-status p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 9px;
+            margin-top: 20px;
+        }
+
+        .number-button {
+            min-width: 0;
+            padding: 13px 5px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--white);
+            background: #0a1727;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .number-button .number {
+            display: block;
+            color: var(--cyan);
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .number-button .number-label {
+            display: block;
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .number-button.active-command {
+            background: #10354a;
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px #28e5f422;
+        }
+
+        .section-divider {
+            border: 0;
+            border-top: 1px solid var(--border);
+            margin: 24px 0;
+        }
+
+        .selected-title {
+            margin: 12px 0 20px;
+            color: var(--cyan);
+            font-size: 25px;
+        }
+
+        .info-item {
+            padding: 17px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-item h4 {
+            font-size: 14px;
+            margin-bottom: 9px;
+        }
+
+        .info-item p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 13px;
+            margin-top: 20px;
+        }
+
+        .parameter-card {
+            padding: 18px;
+            background: #091725;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            min-width: 0;
+        }
+
+        .parameter-card .parameter-label {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .parameter-reading {
+            margin-top: 12px;
+            color: var(--cyan);
+            font-size: clamp(21px, 3vw, 30px);
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .parameter-unit {
+            color: var(--blue);
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        .activity-panel {
+            margin-top: 24px;
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .live-label {
+            border: 1px solid #28506f;
+            padding: 9px 13px;
+            border-radius: 9px;
+            color: var(--cyan);
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        #activityLog {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .activity-entry {
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #091725;
+            border: 1px solid #172c42;
+            color: var(--blue);
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .activity-time {
+            color: var(--cyan);
+            margin-right: 8px;
+        }
+
+        .footer {
+            padding: 25px 0 8px;
+            color: #7995b5;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .app {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel {
+                padding: 17px;
+            }
+
+            .number-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .parameter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">🛰️</div>
+            <div>
+                <h1>NULLPOINTERS</h1>
+                <p class="subtitle">Gesture-Based Spacecraft Control Simulation</p>
+            </div>
+        </div>
+
+        <div id="systemStatus" class="status-pill">
+            CONNECTING...
+        </div>
+    </header>
+
+    <main class="dashboard">
+
+        <!-- LEFT: CAMERA AND GESTURES -->
+        <section class="panel">
+            <p class="eyebrow">Vision Control</p>
+            <h2>Hand Gesture Recognition</h2>
+
+            <div class="camera-frame">
+                <img
+                    id="cameraFeed"
+                    src="http://127.0.0.1:5000/video_feed"
+                    alt="Live hand detection camera feed"
+                >
+                <div id="cameraPlaceholder" class="camera-placeholder hidden">
+                    Camera feed unavailable. Check that the Flask backend is running.
+                </div>
+            </div>
+
+            <div class="detection-card">
+                <div class="detection-heading">
+                    <div class="detection-icon">🖐️</div>
+                    <div>
+                        <strong id="detectionHeading">Hand Detection Active</strong>
+                        <p id="detectionDescription" class="muted small">
+                            Show one to five fingers to select a system.
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    id="toggleDetection"
+                    class="toggle-button"
+                >
+                    Pause Detection
+                </button>
+            </div>
+
+            <div class="camera-status">
+                <p class="eyebrow">Camera Status</p>
+                <h3 id="cameraStatusTitle">Waiting for hand...</h3>
+                <p id="cameraStatusMessage">
+                    Connecting to recognition system...
+                </p>
+            </div>
+
+            <hr class="section-divider">
+
+            <p class="eyebrow">Manual Selection</p>
+            <h2>Select a System</h2>
+            <p class="muted small">
+                You can click a number to test the dashboard even if hand detection is not working.
+            </p>
+
+            <div class="number-grid">
+                <button class="number-button number-command"
+                        type="button" data-finger="1" aria-pressed="false">
+                    <span class="number">1</span>
+                    <span class="number-label">Cabin Environment</span>
+                </button>
+
+                <button class="number-button number-command"
+                        type="button" data-finger="2" aria-pressed="false">
+                    <span class="number">2</span>
+                    <span class="number-label">Air Quality</span>
+                </button>
+
+                <button class="number-button number-command"
+                        type="button" data-finger="3" aria-pressed="false">
+                    <span class="number">3</span>
+                    <span class="number-label">Power & Propulsion</span>
+                </button>
+
+                <button class="number-button number-command"
+                        type="button" data-finger="4" aria-pressed="false">
+                    <span class="number">4</span>
+                    <span class="number-label">Navigation & Structure</span>
+                </button>
+
+                <button class="number-button number-command"
+                        type="button" data-finger="5" aria-pressed="false">
+                    <span class="number">5</span>
+                    <span class="number-label">Crew Safety</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- RIGHT: SYSTEM DETAILS -->
+        <section class="panel">
+            <p class="eyebrow">System Details</p>
+            <h2>How It Works</h2>
+
+            <h3 id="infoTitle" class="selected-title">
+                Waiting for Selection
+            </h3>
+
+            <div class="info-item">
+                <h4>Meaning</h4>
+                <p id="infoMeaning">
+                    Show one to five fingers or select a numbered system.
+                </p>
+            </div>
+
+            <div class="info-item">
+                <h4>Why we use it</h4>
+                <p id="infoWhy">
+                    Monitor spacecraft information without touching the screen.
+                </p>
+            </div>
+
+            <div class="info-item">
+                <h4>System action</h4>
+                <p id="infoAction">No system selected yet.</p>
+            </div>
+
+            <div class="info-item">
+                <h4>Practical use</h4>
+                <p id="infoPractical">
+                    Hands-free spacecraft monitoring simulation.
+                </p>
+            </div>
+
+            <hr class="section-divider">
+
+            <p class="eyebrow">Live Display</p>
+            <h2>Selected System Parameters</h2>
+
+            <div class="parameter-grid">
+                <div class="parameter-card">
+                    <p id="parameterLabel1" class="parameter-label">
+                        Parameter 1
+                    </p>
+                    <div class="parameter-reading">
+                        <span id="parameterValue1">--</span>
+                        <span id="parameterUnit1" class="parameter-unit"></span>
+                    </div>
+                </div>
+
+                <div class="parameter-card">
+                    <p id="parameterLabel2" class="parameter-label">
+                        Parameter 2
+                    </p>
+                    <div class="parameter-reading">
+                        <span id="parameterValue2">--</span>
+                        <span id="parameterUnit2" class="parameter-unit"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- RECENT ACTIVITY -->
+    <section class="panel activity-panel">
+        <div class="activity-header">
+            <div>
+                <p class="eyebrow">System Log</p>
+                <h2>Recent Activity</h2>
+            </div>
+            <span class="live-label">LIVE FEEDBACK</span>
+        </div>
+
+        <div id="activityLog" aria-live="polite">
+            <p class="activity-entry">
+                System initialized. Waiting for your first selection.
+            </p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        AstroGesture · Gesture-Based Spacecraft Monitoring Demo · Simulated readings only
+    </footer>
+
+</div>
+
+<script src="./script.js"></script>
+</body>
+</html>

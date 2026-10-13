@@ -1,0 +1,346 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroGesture | Login</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            background:
+                radial-gradient(circle at top, #172554, transparent 45%),
+                linear-gradient(135deg, #020617, #0f172a, #111827);
+            padding: 20px;
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                radial-gradient(white 1px, transparent 1px),
+                radial-gradient(#60a5fa 1px, transparent 1px);
+            background-size: 65px 65px, 100px 100px;
+            background-position: 0 0, 35px 45px;
+            opacity: 0.3;
+        }
+
+        .login-container {
+            position: relative;
+            width: min(400px, 100%);
+            padding: 35px 30px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 0 35px rgba(14, 165, 233, 0.18);
+        }
+
+        .logo {
+            font-size: 44px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+            font-size: 25px;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.7;
+            margin: 12px 0 24px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 11px;
+            margin: 0;
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #0369a1;
+            color: white;
+            border-color: #38bdf8;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 8px;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border-radius: 9px;
+            border: 1px solid #334155;
+            background: #020617;
+            color: white;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+        }
+
+        .main-button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 23px;
+            background: linear-gradient(90deg, #0284c7, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            filter: brightness(1.12);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #message {
+            min-height: 20px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .hint {
+            margin-top: 12px;
+            color: #94a3b8;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stars"></div>
+
+    <main class="login-container">
+        <div class="logo">🚀</div>
+
+        <h1>NULL POINTERS ✌️</h1>
+
+        <p class="subtitle">
+            SPACECRAFT CONTROL SYSTEM<br>
+            AUTHORIZED ACCESS ONLY
+        </p>
+
+        <div class="tabs">
+            <button type="button" class="tab active" id="loginTab">
+                LOGIN
+            </button>
+
+            <button type="button" class="tab" id="registerTab">
+                CREATE ACCOUNT
+            </button>
+        </div>
+
+        <form id="authForm">
+            <label for="username">Commander Username</label>
+            <input
+                type="text"
+                id="username"
+                placeholder="Enter username"
+                minlength="3"
+                maxlength="30"
+                autocomplete="username"
+                required
+            >
+
+            <label for="password">Access Password</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter password"
+                minlength="8"
+                maxlength="128"
+                autocomplete="current-password"
+                required
+            >
+
+            <button type="submit" class="main-button" id="submitButton">
+                ACCESS MISSION →
+            </button>
+
+            <p id="message" role="alert" aria-live="polite"></p>
+
+            <p class="hint" id="hint">
+                Enter the username and password you registered with.
+            </p>
+        </form>
+
+        <div class="footer">
+            ASTROGESTURE • MISSION CONTROL
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000";
+
+        const authForm = document.getElementById("authForm");
+        const usernameInput = document.getElementById("username");
+        const passwordInput = document.getElementById("password");
+        const message = document.getElementById("message");
+        const submitButton = document.getElementById("submitButton");
+        const loginTab = document.getElementById("loginTab");
+        const registerTab = document.getElementById("registerTab");
+        const hint = document.getElementById("hint");
+
+        let mode = "login";
+
+        function setMode(newMode) {
+            mode = newMode;
+
+            const registering = mode === "register";
+
+            loginTab.classList.toggle("active", !registering);
+            registerTab.classList.toggle("active", registering);
+
+            submitButton.textContent = registering
+                ? "CREATE ACCOUNT →"
+                : "ACCESS MISSION →";
+
+            passwordInput.autocomplete = registering
+                ? "new-password"
+                : "current-password";
+
+            hint.textContent = registering
+                ? "Username: 3–30 letters, numbers, or underscores. Password: at least 8 characters."
+                : "Enter the username and password you registered with.";
+
+            message.textContent = "";
+            message.style.color = "#f87171";
+        }
+
+        loginTab.addEventListener("click", () => setMode("login"));
+        registerTab.addEventListener("click", () => setMode("register"));
+
+        authForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            if (mode === "register" &&
+                !/^[A-Za-z0-9_]{3,30}$/.test(username)) {
+                message.style.color = "#f87171";
+                message.textContent =
+                    "Use 3–30 letters, numbers, or underscores for your username.";
+                return;
+            }
+
+            if (mode === "register" &&
+                (password.length < 8 || password.length > 128)) {
+                message.style.color = "#f87171";
+                message.textContent =
+                    "Your password must be 8–128 characters long.";
+                return;
+            }
+
+            submitButton.disabled = true;
+            message.style.color = "#38bdf8";
+            message.textContent = mode === "register"
+                ? "Creating your account..."
+                : "Checking your credentials...";
+
+            try {
+                const endpoint = mode === "register"
+                    ? "/api/register"
+                    : "/api/login";
+
+                const response = await fetch(API_BASE + endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    message.style.color = "#f87171";
+                    message.textContent =
+                        data.message || data.error ||
+                        (response.status === 401
+                            ? "Incorrect username or password."
+                            : "Request failed. Please try again.");
+                    return;
+                }
+
+                message.style.color = "#4ade80";
+                message.textContent = mode === "register"
+                    ? "Account created! Opening mission control..."
+                    : "Login successful! Opening mission control...";
+
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 700);
+
+            } catch (error) {
+                message.style.color = "#f87171";
+                message.textContent =
+                    "Cannot connect to Flask. Make sure backend/app.py is running on port 5000.";
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
