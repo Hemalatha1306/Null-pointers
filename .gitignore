@@ -1,5 +1,5 @@
 .venv/
+venv/
 __pycache__/
-*.py[cod]
+*.pyc
 .env
-backend/users.db
